@@ -30,6 +30,29 @@ export const fetchProperties = async (filters?: any) => {
   };
 };
 
+export const fetchPropertyById = async (id: string) => {
+  // Simulating API call with delay
+  await delay(300);
+  
+  // Mock response data
+  return {
+    id: '1',
+    address: '123 Ranch Road',
+    city: 'Austin',
+    state: 'TX',
+    zip: '78701',
+    county: 'Travis',
+    price: 500000,
+    acres: 10.5,
+    zoning: 'Agricultural',
+    latitude: 30.2672,
+    longitude: -97.7431,
+    description: 'Beautiful ranch property with rolling hills',
+    images: ['https://images.pexels.com/photos/280229/pexels-photo-280229.jpeg'],
+    features: ['Creek', 'Fenced', 'Road Frontage']
+  };
+};
+
 export const fetchRegionBoundaries = async (state: string): Promise<GeoJSON.FeatureCollection> => {
   // This would normally fetch from a GeoJSON API or database
   // For demo purposes, returning mock data
