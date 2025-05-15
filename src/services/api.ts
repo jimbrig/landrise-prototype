@@ -28,3 +28,24 @@ export const fetchRegionBoundaries = async (state: string): Promise<GeoJSON.Feat
     ]
   };
 };
+
+// Add the missing exportSearchResults function
+export const exportSearchResults = async (properties: any[]): Promise<Blob> => {
+  // Convert properties to CSV format
+  const headers = ['Address', 'City', 'State', 'Price', 'Acres', 'Zoning'];
+  const rows = properties.map(property => [
+    property.address,
+    property.city,
+    property.state,
+    property.price,
+    property.acres,
+    property.zoning
+  ]);
+
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.join(','))
+  ].join('\n');
+
+  return new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+};
