@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Property } from '../../types';
@@ -43,6 +44,8 @@ const MapView: React.FC<MapViewProps> = ({
   height = '500px',
   isLoading = false
 }) => {
+  const navigate = useNavigate();
+
   const getMapBounds = () => {
     if (properties.length === 0) {
       return [[30.2672, -97.7431], [30.2672, -97.7431]]; // Default to Austin
@@ -53,6 +56,12 @@ const MapView: React.FC<MapViewProps> = ({
       [Math.min(...lats), Math.min(...lngs)],
       [Math.max(...lats), Math.max(...lngs)]
     ];
+  };
+
+  const handleViewDetails = (e: React.MouseEvent, property: Property) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/parcel/${property.id}`);
   };
 
   if (isLoading) {
@@ -101,7 +110,7 @@ const MapView: React.FC<MapViewProps> = ({
                 </p>
                 <p className="text-sm text-gray-600">{formatAcres(property.acres)}</p>
                 <button
-                  onClick={() => onSelectProperty?.(property)}
+                  onClick={(e) => handleViewDetails(e, property)}
                   className="mt-2 w-full px-3 py-1.5 bg-green-500 text-white rounded-md text-sm hover:bg-green-600 transition-colors"
                 >
                   View Details
