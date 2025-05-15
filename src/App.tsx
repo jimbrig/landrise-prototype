@@ -3,7 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import HomePage from './pages/HomePage';
-import ParcelSearchPage from './pages/ParcelSearchPage';
+import SearchPage from './pages/SearchPage';
 import ParcelDetailPage from './pages/ParcelDetailPage';
 import AnalysisPage from './pages/AnalysisPage';
 import InsightsPage from './pages/InsightsPage';
@@ -16,7 +16,7 @@ function App() {
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/parcels" element={<ParcelSearchPage />} />
+          <Route path="/parcels" element={<SearchPage />} />
           <Route path="/parcel/:id" element={<ParcelDetailPage />} />
           <Route path="/analysis" element={<AnalysisPage />} />
           <Route path="/insights" element={<InsightsPage />} />
