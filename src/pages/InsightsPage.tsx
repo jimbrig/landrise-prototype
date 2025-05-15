@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { LineChart, BarChart, PieChart, Map, TrendingUp, DollarSign } from 'lucide-react';
+import { LineChart as LineChartIcon, BarChart as BarChartIcon, PieChart as PieChartIcon, Map, TrendingUp, DollarSign } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { Property } from '../types';
 import { fetchProperties } from '../services/api';
+
+const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
 const InsightsPage: React.FC = () => {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -42,13 +45,49 @@ const InsightsPage: React.FC = () => {
       return acc;
     }, {} as Record<string, number>);
 
+    // Prepare data for charts
+    const priceRanges = [
+      '0-100k', '100k-250k', '250k-500k', '500k-1M', '1M+'
+    ];
+
+    const priceDistribution = properties.reduce((acc, p) => {
+      let range = '1M+';
+      if (p.price < 100000) range = '0-100k';
+      else if (p.price < 250000) range = '100k-250k';
+      else if (p.price < 500000) range = '250k-500k';
+      else if (p.price < 1000000) range = '500k-1M';
+      
+      acc[range] = (acc[range] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const priceDistributionData = priceRanges.map(range => ({
+      name: range,
+      value: priceDistribution[range] || 0
+    }));
+
+    const zoningData = Object.entries(zoningDistribution).map(([name, value]) => ({
+      name,
+      value
+    }));
+
+    // Mock time series data for market trends
+    const trendData = Array.from({ length: 12 }, (_, i) => ({
+      month: new Date(2024, i, 1).toLocaleString('default', { month: 'short' }),
+      avgPrice: avgPrice * (1 + Math.sin(i / 2) * 0.1),
+      inventory: properties.length * (1 + Math.cos(i / 2) * 0.2)
+    }));
+
     return {
       totalValue,
       avgPrice,
       avgSize,
       pricePerAcre,
       zoningDistribution,
-      countyDistribution
+      countyDistribution,
+      priceDistributionData,
+      zoningData,
+      trendData
     };
   };
 
@@ -89,7 +128,7 @@ const InsightsPage: React.FC = () => {
         <MetricCard
           title="Price per Acre"
           value={metrics?.pricePerAcre ? `$${metrics.pricePerAcre.toLocaleString()}` : 'N/A'}
-          icon={<LineChart className="text-amber-600" size={24} />}
+          icon={<LineChartIcon className="text-amber-600" size={24} />}
           change="+15.7%"
         />
       </div>
@@ -98,19 +137,48 @@ const InsightsPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-6">Price Distribution</h2>
-          <div className="h-64 flex items-center justify-center">
-            <div className="text-gray-500 dark:text-gray-400">
-              Price distribution chart will be rendered here
-            </div>
+          <div className="h-64">
+            {metrics?.priceDistributionData && (
+              <PieChart width={400} height={250}>
+                <Pie
+                  data={metrics.priceDistributionData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {metrics.priceDistributionData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            )}
           </div>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-6">Property Types</h2>
-          <div className="h-64 flex items-center justify-center">
-            <div className="text-gray-500 dark:text-gray-400">
-              Property types distribution chart will be rendered here
-            </div>
+          <div className="h-64">
+            {metrics?.zoningData && (
+              <BarChart
+                width={400}
+                height={250}
+                data={metrics.zoningData}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="value" fill="#3B82F6" />
+              </BarChart>
+            )}
           </div>
         </div>
       </div>
@@ -118,10 +186,36 @@ const InsightsPage: React.FC = () => {
       {/* Market Trends */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
         <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-6">Market Trends</h2>
-        <div className="h-80 flex items-center justify-center">
-          <div className="text-gray-500 dark:text-gray-400">
-            Market trends chart will be rendered here
-          </div>
+        <div className="h-80">
+          {metrics?.trendData && (
+            <LineChart
+              width={800}
+              height={300}
+              data={metrics.trendData}
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis yAxisId="left" />
+              <YAxis yAxisId="right" orientation="right" />
+              <Tooltip />
+              <Legend />
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="avgPrice"
+                stroke="#10B981"
+                name="Average Price"
+              />
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="inventory"
+                stroke="#3B82F6"
+                name="Inventory"
+              />
+            </LineChart>
+          )}
         </div>
       </div>
 
