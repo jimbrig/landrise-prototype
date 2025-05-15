@@ -15,6 +15,7 @@ export interface Property {
   features: string[];
   financials?: PropertyFinancials;
   parcelData?: ParcelData;
+  msa?: string;
 }
 
 export interface PropertyFinancials {
@@ -77,6 +78,7 @@ export interface SearchFilters {
     county: string;
     city: string;
     msa?: string;
+    includeOutlyingCounties?: boolean;
   };
   priceRange: {
     min: number | null;
@@ -87,6 +89,17 @@ export interface SearchFilters {
     max: number | null;
   };
   zoning: string[];
+  radius?: {
+    enabled: boolean;
+    center: { lat: number; lng: number } | null;
+    distance: number;
+  };
+  options?: {
+    hasImages: boolean;
+    hasWater: boolean;
+    hasUtilities: boolean;
+    isCornerLot: boolean;
+  };
 }
 
 export interface SavedSearch {
