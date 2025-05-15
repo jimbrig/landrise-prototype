@@ -21,9 +21,10 @@ const SearchPage: React.FC = () => {
       setIsLoading(true);
       try {
         const data = await fetchProperties();
-        setProperties(data);
+        setProperties(Array.isArray(data) ? data : data.data || []);
       } catch (error) {
         console.error('Error fetching properties:', error);
+        setProperties([]);
       } finally {
         setIsLoading(false);
       }
@@ -38,10 +39,11 @@ const SearchPage: React.FC = () => {
     
     try {
       const results = await fetchProperties(filters);
-      setProperties(results);
+      setProperties(Array.isArray(results) ? results : results.data || []);
       setSelectedProperty(undefined);
     } catch (error) {
       console.error('Error searching properties:', error);
+      setProperties([]);
     } finally {
       setIsLoading(false);
     }
