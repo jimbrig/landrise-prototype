@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import React, { useEffect } from 'react';
+import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Property } from '../../types';
@@ -9,26 +9,17 @@ interface MapViewProps {
   selectedProperty?: Property;
   onSelectProperty?: (property: Property) => void;
   height?: string;
+  regions?: GeoJSON.FeatureCollection;
+  selectedRegion?: string;
 }
-
-// Fix for default marker icons in Leaflet
-const defaultIcon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-
-L.Marker.prototype.options.icon = defaultIcon;
 
 const MapView: React.FC<MapViewProps> = ({
   properties,
   selectedProperty,
   onSelectProperty,
-  height = '500px'
+  height = '500px',
+  regions,
+  selectedRegion
 }) => {
   const getBounds = () => {
     if (properties.length === 0) {
@@ -37,8 +28,57 @@ const MapView: React.FC<MapViewProps> = ({
     return properties.map(prop => [prop.latitude, prop.longitude]);
   };
 
+  const getRegionStyle = (feature: GeoJSON.Feature) => {
+    const isSelected = feature.properties?.name === selectedRegion;
+    return {
+      fillColor: isSelected ? '#3b82f6' : '#60a5fa',
+      weight: 2,
+      opacity: 1,
+      color: 'white',
+      dashArray: '3',
+      fillOpacity: isSelected ? 0.7 : 0.4
+    };
+  };
+
+  const onEachFeature = (feature: GeoJSON.Feature, layer: L.Layer) => {
+    if (feature.properties) {
+      layer.bindPopup(`
+        <div class="p-2">
+          <h3 class="font-semibold">${feature.properties.name}</h3>
+          <p class="text-sm text-gray-600">
+            ${properties.filter(p => p.county === feature.properties.name).length} properties
+          </p>
+        </div>
+      `);
+
+      layer.on({
+        mouseover: (e) => {
+          const layer = e.target;
+          layer.setStyle({
+            weight: 3,
+            fillOpacity: 0.6
+          });
+        },
+        mouseout: (e) => {
+          const layer = e.target;
+          layer.setStyle(getRegionStyle(feature));
+        },
+        click: () => {
+          if (onSelectProperty && feature.properties) {
+            const regionProperties = properties.filter(
+              p => p.county === feature.properties.name
+            );
+            if (regionProperties.length > 0) {
+              onSelectProperty(regionProperties[0]);
+            }
+          }
+        }
+      });
+    }
+  };
+
   return (
-    <div style={{ height }} className="rounded-lg overflow-hidden shadow-md border border-gray-200">
+    <div style={{ height }} className="rounded-lg overflow-hidden shadow-md border border-gray-200 dark:border-gray-700">
       <MapContainer
         bounds={getBounds() as L.LatLngBoundsExpression}
         style={{ height: '100%', width: '100%' }}
@@ -49,26 +89,18 @@ const MapView: React.FC<MapViewProps> = ({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {properties.map((property) => (
-          <Marker
-            key={property.id}
-            position={[property.latitude, property.longitude]}
-            eventHandlers={{
-              click: () => onSelectProperty && onSelectProperty(property)
-            }}
-          >
-            <Popup>
-              <div className="p-2">
-                <h3 className="font-semibold">{property.address}</h3>
-                <p className="text-sm text-gray-600">{property.acres} acres</p>
-                <p className="text-sm font-semibold text-green-600">
-                  ${property.price.toLocaleString()}
-                </p>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-        <MapController properties={properties} selectedProperty={selectedProperty} />
+        {regions && (
+          <GeoJSON
+            data={regions}
+            style={getRegionStyle}
+            onEachFeature={onEachFeature}
+          />
+        )}
+        <MapController 
+          properties={properties} 
+          selectedProperty={selectedProperty}
+          regions={regions}
+        />
       </MapContainer>
     </div>
   );
@@ -77,22 +109,30 @@ const MapView: React.FC<MapViewProps> = ({
 interface MapControllerProps {
   properties: Property[];
   selectedProperty?: Property;
+  regions?: GeoJSON.FeatureCollection;
 }
 
-const MapController: React.FC<MapControllerProps> = ({ properties, selectedProperty }) => {
+const MapController: React.FC<MapControllerProps> = ({ 
+  properties, 
+  selectedProperty,
+  regions 
+}) => {
   const map = useMap();
 
   useEffect(() => {
     if (selectedProperty) {
       map.setView(
         [selectedProperty.latitude, selectedProperty.longitude],
-        14
+        10
       );
+    } else if (regions && regions.features.length > 0) {
+      const bounds = L.geoJSON(regions).getBounds();
+      map.fitBounds(bounds);
     } else if (properties.length > 0) {
       const bounds = L.latLngBounds(properties.map(p => [p.latitude, p.longitude]));
       map.fitBounds(bounds);
     }
-  }, [map, properties, selectedProperty]);
+  }, [map, properties, selectedProperty, regions]);
 
   return null;
 };
