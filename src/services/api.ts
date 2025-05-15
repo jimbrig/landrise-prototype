@@ -1,4 +1,35 @@
-// Add to the existing api.ts file
+// Helper function for simulating API delay
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+export const fetchProperties = async (filters?: any) => {
+  // Simulating API call with delay
+  await delay(300);
+  
+  // Mock response data
+  return {
+    data: [
+      {
+        id: '1',
+        address: '123 Ranch Road',
+        city: 'Austin',
+        state: 'TX',
+        zip: '78701',
+        county: 'Travis',
+        price: 500000,
+        acres: 10.5,
+        zoning: 'Agricultural',
+        latitude: 30.2672,
+        longitude: -97.7431,
+        description: 'Beautiful ranch property with rolling hills',
+        images: ['https://images.pexels.com/photos/280229/pexels-photo-280229.jpeg'],
+        features: ['Creek', 'Fenced', 'Road Frontage']
+      }
+      // Add more mock properties as needed
+    ],
+    count: 1
+  };
+};
+
 export const fetchRegionBoundaries = async (state: string): Promise<GeoJSON.FeatureCollection> => {
   // This would normally fetch from a GeoJSON API or database
   // For demo purposes, returning mock data
@@ -23,13 +54,12 @@ export const fetchRegionBoundaries = async (state: string): Promise<GeoJSON.Feat
             [-97.9, 30.1]
           ]]
         }
-      },
+      }
       // Add more county polygons as needed
     ]
   };
 };
 
-// Add the missing exportSearchResults function
 export const exportSearchResults = async (properties: any[]): Promise<Blob> => {
   // Convert properties to CSV format
   const headers = ['Address', 'City', 'State', 'Price', 'Acres', 'Zoning'];
