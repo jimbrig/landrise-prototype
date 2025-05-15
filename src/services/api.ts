@@ -60,6 +60,18 @@ export const fetchRegionBoundaries = async (state: string): Promise<GeoJSON.Feat
   };
 };
 
+export const saveSearch = async (search: { name: string; filters: any }) => {
+  // Simulating API call with delay
+  await delay(300);
+  
+  // Mock successful response
+  return {
+    id: Math.random().toString(36).substr(2, 9),
+    ...search,
+    created_at: new Date().toISOString()
+  };
+};
+
 export const exportSearchResults = async (properties: any[]): Promise<Blob> => {
   // Convert properties to CSV format
   const headers = ['Address', 'City', 'State', 'Price', 'Acres', 'Zoning'];
