@@ -13,6 +13,62 @@ export interface Property {
   description: string;
   images: string[];
   features: string[];
+  financials?: PropertyFinancials;
+  parcelData?: ParcelData;
+}
+
+export interface PropertyFinancials {
+  developmentCosts: {
+    landCost: number;
+    sitework: number;
+    utilities: number;
+    permits: number;
+    other: number;
+  };
+  revenue: {
+    projectedSalePrice: number;
+    rentalIncome?: number;
+  };
+  financing: {
+    loanAmount: number;
+    interestRate: number;
+    term: number;
+    monthlyPayment: number;
+  };
+  roi: {
+    netProfit: number;
+    returnOnInvestment: number;
+    internalRateOfReturn: number;
+    cashOnCash: number;
+  };
+}
+
+export interface ParcelData {
+  elevation: {
+    min: number;
+    max: number;
+    average: number;
+  };
+  water: {
+    bodies: {
+      type: string;
+      area: number;
+    }[];
+    percentage: number;
+  };
+  soil: {
+    type: string;
+    composition: {
+      type: string;
+      percentage: number;
+    }[];
+    percolationRate: number;
+  };
+  metrics: {
+    flatness: number; // 0-1 scale
+    squareness: number; // 0-1 scale
+    waterCoverage: number; // percentage
+  };
 }
 
 export interface SearchFilters {
@@ -20,6 +76,7 @@ export interface SearchFilters {
     state: string;
     county: string;
     city: string;
+    msa?: string;
   };
   priceRange: {
     min: number | null;
@@ -45,4 +102,5 @@ export interface User {
   email: string;
   savedSearches: SavedSearch[];
   savedProperties: string[];
+  subscription: 'free' | 'pro';
 }
