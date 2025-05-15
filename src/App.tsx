@@ -4,7 +4,7 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import HomePage from './pages/HomePage';
 import SearchPage from './pages/SearchPage';
-import ParcelDetailPage from './pages/ParcelDetailPage';
+import ParcelDetailPage from './pages/PropertyDetailPage';
 import AnalysisPage from './pages/AnalysisPage';
 import InsightsPage from './pages/InsightsPage';
 
